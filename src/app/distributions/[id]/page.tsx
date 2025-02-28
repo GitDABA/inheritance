@@ -20,13 +20,20 @@ export default function DistributionPage() {
   const isActive = distribution?.status === 'active';
 
   useEffect(() => {
+    if (!params.id) {
+      router.push('/distributions');
+      return;
+    }
     loadDistribution();
   }, [params.id]);
 
   const loadDistribution = async () => {
     try {
       const data = await getDistribution(params.id as string);
-      setDistribution(data);
+      setDistribution({
+        ...data,
+        items: data.items || [], // Ensure items is always an array
+      });
       setError(null);
     } catch (err) {
       console.error('Error loading distribution:', err);
@@ -81,6 +88,12 @@ export default function DistributionPage() {
                 <p>Start: {new Date(distribution.startDate).toLocaleDateString()}</p>
                 <p>End: {new Date(distribution.endDate).toLocaleDateString()}</p>
                 <p className="capitalize">Status: {distribution.status}</p>
+                {distribution.totalItems !== undefined && (
+                  <p>Total Items: {distribution.totalItems}</p>
+                )}
+                {distribution.participationRate !== undefined && (
+                  <p>Participation: {distribution.participationRate}%</p>
+                )}
               </div>
             </div>
 
@@ -98,13 +111,15 @@ export default function DistributionPage() {
         {(isAdmin || isActive) && (
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Items</h2>
-              <button
-                onClick={() => setShowItemForm(!showItemForm)}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                {showItemForm ? 'Hide Form' : 'Add Item'}
-              </button>
+              <h2 className="text-2xl font-bold">Items ({distribution.items.length})</h2>
+              {isAdmin && (
+                <button
+                  onClick={() => setShowItemForm(!showItemForm)}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                >
+                  {showItemForm ? 'Hide Form' : 'Add Item'}
+                </button>
+              )}
             </div>
 
             {showItemForm && (
@@ -122,7 +137,7 @@ export default function DistributionPage() {
               </div>
             )}
 
-            {distribution.items && distribution.items.length > 0 ? (
+            {distribution.items.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {distribution.items.map((item: Item) => (
                   <div key={item.id} className="bg-white shadow rounded-lg p-6">

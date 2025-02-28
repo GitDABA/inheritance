@@ -40,18 +40,21 @@ export async function getDistributions(): Promise<Distribution[]> {
 }
 
 export async function getDistribution(id: string): Promise<Distribution> {
-  const response = await fetch(`/.netlify/functions/distribution-management?id=${id}`, {
+  const response = await fetch(`/.netlify/functions/distribution-details?id=${id}`, {
     headers: {
-      'Authorization': await getAuthHeader(),
+      'Content-Type': 'application/json',
     },
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to fetch distribution');
+    throw new Error('Failed to fetch distribution');
   }
 
-  return response.json();
+  const data = await response.json();
+  return {
+    ...data,
+    items: data.items || [], // Ensure items is always an array
+  };
 }
 
 export async function updateDistribution(id: string, updates: Partial<Distribution>): Promise<Distribution> {

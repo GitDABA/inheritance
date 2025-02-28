@@ -29,6 +29,9 @@ export interface Distribution {
   startDate: string;
   endDate: string;
   createdBy: string;
+  items?: Item[];  // Add items as optional property
+  totalItems?: number;  // Add count of items
+  participationRate?: number;  // Add participation rate
   createdAt: string;
   updatedAt: string;
 }
