@@ -1,117 +1,69 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import netlifyIdentity from 'netlify-identity-widget';
 import { User } from '@/types';
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  error: Error | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize Netlify Identity
-    if (typeof window !== 'undefined') {
-      const netlifyIdentity = require('netlify-identity-widget');
-      netlifyIdentity.init({
-        APIUrl: process.env.NEXT_PUBLIC_NETLIFY_IDENTITY_URL
-      });
+    netlifyIdentity.init();
 
-      // Handle login event
-      netlifyIdentity.on('login', async (user: any) => {
-        try {
-          const response = await fetch('/.netlify/functions/get-user-data', {
-            headers: {
-              Authorization: `Bearer ${user.token.access_token}`
-            }
-          });
-          
-          if (!response.ok) throw new Error('Failed to fetch user data');
-          
-          const userData = await response.json();
-          setUser(userData);
-        } catch (err) {
-          setError(err instanceof Error ? err : new Error('Unknown error'));
-        }
+    netlifyIdentity.on('login', (user) => {
+      setUser({
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || '',
+        isAdmin: user.app_metadata?.roles?.includes('admin') || false,
+        points: 1000, // Default points, should be fetched from Supabase
+        pointsSpent: 0,
+        token: user.token.access_token,
       });
+    });
 
-      // Handle logout
-      netlifyIdentity.on('logout', () => {
-        setUser(null);
+    netlifyIdentity.on('logout', () => {
+      setUser(null);
+    });
+
+    // Check if user is already logged in
+    const currentUser = netlifyIdentity.currentUser();
+    if (currentUser) {
+      setUser({
+        id: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.user_metadata?.full_name || '',
+        isAdmin: currentUser.app_metadata?.roles?.includes('admin') || false,
+        points: 1000, // Default points, should be fetched from Supabase
+        pointsSpent: 0,
+        token: currentUser.token.access_token,
       });
-
-      // Check initial session
-      const currentUser = netlifyIdentity.currentUser();
-      if (currentUser) {
-        netlifyIdentity.refresh().then((jwt: any) => {
-          netlifyIdentity.gotrue.currentUser().getUserData()
-            .then((userData: any) => {
-              setUser(userData);
-            })
-            .catch((err: Error) => {
-              setError(err);
-            })
-            .finally(() => {
-              setLoading(false);
-            });
-        });
-      } else {
-        setLoading(false);
-      }
     }
+
+    setIsLoading(false);
+
+    return () => {
+      netlifyIdentity.off('login');
+      netlifyIdentity.off('logout');
+    };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    try {
-      const netlifyIdentity = require('netlify-identity-widget');
-      await netlifyIdentity.login(email, password);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Login failed'));
-      throw err;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      const netlifyIdentity = require('netlify-identity-widget');
-      await netlifyIdentity.logout();
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Logout failed'));
-      throw err;
-    }
-  };
-
-  const signup = async (email: string, password: string, name: string) => {
-    try {
-      const netlifyIdentity = require('netlify-identity-widget');
-      await netlifyIdentity.signup(email, password, { data: { name } });
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Signup failed'));
-      throw err;
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, signup }}>
+    <AuthContext.Provider value={{ user, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+export const useAuth = () => useContext(AuthContext);
