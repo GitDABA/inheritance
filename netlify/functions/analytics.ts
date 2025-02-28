@@ -61,10 +61,14 @@ export const handler: Handler = async (event, context) => {
         .select('id', { count: 'exact' });
 
       // Get participating users
-      const { count: participatingUsers } = await supabase
+      const { data: participatingUsersData } = await supabase
         .from('item_allocations')
-        .select('user_id', { count: 'exact', distinct: true })
+        .select('user_id')
         .eq('distribution_id', distribution.id);
+
+      // Count unique users
+      const uniqueUsers = new Set(participatingUsersData?.map(item => item.user_id));
+      const participatingUsers = uniqueUsers.size;
 
       // Calculate participation rate
       analytics.participationRates[distribution.id] = 
