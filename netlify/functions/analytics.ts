@@ -6,10 +6,18 @@ interface Distribution {
   status: string;
 }
 
+interface ParticipationRates {
+  [distributionId: string]: number;
+}
+
+interface PointsUsed {
+  [distributionId: string]: number;
+}
+
 interface AnalyticsData {
   totalItems: number;
-  participationRates: Record<string, number>;
-  pointsUsed: Record<string, number>;
+  participationRates: ParticipationRates;
+  pointsUsed: PointsUsed;
 }
 
 interface ItemAllocation {
@@ -90,7 +98,7 @@ export const handler: Handler = async (event, context) => {
       const uniqueUsers = new Set((participatingUsersData || []).map(item => item.user_id));
       const participatingUsers = uniqueUsers.size;
 
-      // Calculate participation rate
+      // Calculate participation rate with type-safe assignment
       analytics.participationRates[distribution.id] = 
         totalUsers ? Math.round((participatingUsers / totalUsers) * 100) : 0;
 
@@ -100,6 +108,7 @@ export const handler: Handler = async (event, context) => {
         .select('points_allocated')
         .eq('distribution_id', distribution.id);
 
+      // Type-safe points calculation
       analytics.pointsUsed[distribution.id] = 
         (pointsData as ItemAllocation[] || []).reduce((sum, item) => sum + (item.points_allocated || 0), 0);
     }
