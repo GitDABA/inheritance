@@ -7,6 +7,7 @@ export interface User {
   role: Role;
   points: number;
   pointsSpent: number;
+  token?: string;
   createdAt: string;
   updatedAt: string;
 }
