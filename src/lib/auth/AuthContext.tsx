@@ -2,68 +2,123 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import netlifyIdentity from 'netlify-identity-widget';
-import { User } from '@/types';
 
-interface AuthContextType {
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role?: string;
+  points: number;
+  pointsSpent: number;
+  isAdmin: boolean;
+  token?: {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+    refresh_token: string;
+    expires_at: number;
+  };
+}
+
+export interface AuthContextType {
   user: User | null;
-  isLoading: boolean;
+  loading: boolean;
+  login: () => void;
+  logout: () => void;
+  authReady: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  isLoading: true,
+  loading: true,
+  login: () => {},
+  logout: () => {},
+  authReady: false,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+
+  const transformNetlifyUser = (netlifyUser: any): User => ({
+    id: netlifyUser.id,
+    email: netlifyUser.email,
+    name: netlifyUser.user_metadata?.full_name || netlifyUser.email.split('@')[0],
+    isAdmin: netlifyUser.app_metadata?.roles?.includes('admin') || false,
+    points: 1000, // Default points
+    pointsSpent: 0,
+    role: netlifyUser.app_metadata?.roles?.[0] || 'user',
+    token: netlifyUser.token,
+  });
 
   useEffect(() => {
+    const initCallback = (netlifyUser: any) => {
+      if (netlifyUser) {
+        setUser(transformNetlifyUser(netlifyUser));
+      }
+      setAuthReady(true);
+      setLoading(false);
+    };
+
+    const loginCallback = (netlifyUser: any) => {
+      setUser(transformNetlifyUser(netlifyUser));
+      netlifyIdentity.close();
+      setLoading(false);
+    };
+
+    const logoutCallback = () => {
+      setUser(null);
+      setLoading(false);
+    };
+
+    const errorCallback = (err: Error) => {
+      console.error('Netlify Identity error:', err);
+      setLoading(false);
+    };
+
+    netlifyIdentity.on('init', initCallback);
+    netlifyIdentity.on('login', loginCallback);
+    netlifyIdentity.on('logout', logoutCallback);
+    netlifyIdentity.on('error', errorCallback);
+
     netlifyIdentity.init();
 
-    netlifyIdentity.on('login', (user) => {
-      setUser({
-        id: user.id,
-        email: user.email,
-        name: user.user_metadata?.full_name || '',
-        isAdmin: user.app_metadata?.roles?.includes('admin') || false,
-        points: 1000, // Default points, should be fetched from Supabase
-        pointsSpent: 0,
-        token: user.token.access_token,
-      });
-    });
-
-    netlifyIdentity.on('logout', () => {
-      setUser(null);
-    });
-
-    // Check if user is already logged in
-    const currentUser = netlifyIdentity.currentUser();
-    if (currentUser) {
-      setUser({
-        id: currentUser.id,
-        email: currentUser.email,
-        name: currentUser.user_metadata?.full_name || '',
-        isAdmin: currentUser.app_metadata?.roles?.includes('admin') || false,
-        points: 1000, // Default points, should be fetched from Supabase
-        pointsSpent: 0,
-        token: currentUser.token.access_token,
-      });
-    }
-
-    setIsLoading(false);
-
     return () => {
-      netlifyIdentity.off('login');
-      netlifyIdentity.off('logout');
+      netlifyIdentity.off('init', initCallback);
+      netlifyIdentity.off('login', loginCallback);
+      netlifyIdentity.off('logout', logoutCallback);
+      netlifyIdentity.off('error', errorCallback);
     };
   }, []);
 
+  const login = () => {
+    netlifyIdentity.open();
+  };
+
+  const logout = () => {
+    netlifyIdentity.logout();
+  };
+
+  const context = {
+    user,
+    loading,
+    login,
+    logout,
+    authReady,
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading }}>
+    <AuthContext.Provider value={context}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

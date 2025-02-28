@@ -24,7 +24,7 @@ A Next.js application for fairly distributing items among siblings using a weigh
 - **State Management**: Zustand
 - **Backend**: Netlify Functions
 - **Database**: Supabase
-- **Deployment**: Netlify
+- **Deployment**: Netlify (via GitHub)
 
 ## Development Setup
 
@@ -41,6 +41,46 @@ A Next.js application for fairly distributing items among siblings using a weigh
    ```bash
    npm run dev:all
    ```
+
+## Deployment
+
+This project is configured for continuous deployment through GitHub and Netlify.
+
+### GitHub Setup
+
+1. Create a new repository on GitHub
+2. Push your code to GitHub:
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/yourusername/inherance.git
+   git push -u origin main
+   ```
+
+### Netlify Setup
+
+1. Log in to your Netlify account
+2. Click "Add new site" > "Import an existing project"
+3. Connect to your GitHub repository
+4. Configure build settings:
+   - Build command: `npm run build`
+   - Publish directory: `.next`
+5. Add environment variables in Netlify site settings:
+   - SUPABASE_URL
+   - SUPABASE_ANON_KEY
+   - NETLIFY_IDENTITY_URL
+   - NETLIFY_AUTH_TOKEN
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+### Automatic Deployments
+
+Once set up, Netlify will automatically:
+1. Watch for changes on your GitHub repository
+2. Trigger a new build when changes are pushed to the main branch
+3. Deploy the updated site if the build succeeds
 
 ## Design System Guidelines
 

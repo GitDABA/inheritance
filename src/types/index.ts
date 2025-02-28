@@ -2,12 +2,19 @@ export type Role = 'admin' | 'user';
 
 export interface User {
   id: string;
-  name: string;
   email: string;
-  role: Role;
+  name: string;
+  role?: string;
   points: number;
   pointsSpent: number;
-  token?: string;
+  isAdmin: boolean;
+  token?: {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+    refresh_token: string;
+    expires_at: number;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -18,20 +25,25 @@ export interface Item {
   description?: string;
   imageUrl?: string;
   price?: number;
+  distributionId: string;
   createdAt: string;
   updatedAt: string;
+  createdBy: string;
+  currentBid?: number;
+  highestBidder?: string;
 }
 
 export interface Distribution {
   id: string;
   name: string;
-  status: 'active' | 'completed' | 'pending';
+  description?: string;
   startDate: string;
   endDate: string;
+  status: 'draft' | 'active' | 'completed';
   createdBy: string;
-  items?: Item[];  // Add items as optional property
-  totalItems?: number;  // Add count of items
-  participationRate?: number;  // Add participation rate
+  items?: Item[];
+  totalItems?: number;
+  participationRate?: number;
   createdAt: string;
   updatedAt: string;
 }

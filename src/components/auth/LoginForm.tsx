@@ -1,39 +1,24 @@
 'use client';
 
-import { useEffect } from 'react';
-import netlifyIdentity from 'netlify-identity-widget';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function LoginForm() {
-  useEffect(() => {
-    netlifyIdentity.init({
-      locale: 'en'
-    });
-  }, []);
-
-  const handleLogin = () => {
-    netlifyIdentity.open('login');
-  };
-
-  const handleSignup = () => {
-    netlifyIdentity.open('signup');
-  };
+  const { login } = useAuth();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-8 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Welcome to Inheritance</h1>
-        <div className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
+          </h2>
+        </div>
+        <div className="mt-8 space-y-6">
           <button
-            onClick={handleLogin}
-            className="w-full px-4 py-2 text-white bg-primary-600 rounded hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            onClick={login}
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
-            Log In
-          </button>
-          <button
-            onClick={handleSignup}
-            className="w-full px-4 py-2 text-primary-600 border border-primary-600 rounded hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            Sign Up
+            Sign in with Netlify Identity
           </button>
         </div>
       </div>
