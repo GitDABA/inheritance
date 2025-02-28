@@ -14,7 +14,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.isAdmin) {
+    if (!user || user.role !== 'admin') {
       router.push('/');
       return;
     }
@@ -170,11 +170,11 @@ export default function AdminDashboard() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.isAdmin
+                      user.role === 'admin'
                         ? 'bg-purple-100 text-purple-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {user.isAdmin ? 'Admin' : 'User'}
+                      {user.role === 'admin' ? 'Admin' : 'User'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
