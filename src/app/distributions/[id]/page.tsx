@@ -18,6 +18,7 @@ export default function DistributionPage() {
 
   const isAdmin = user?.role === 'admin';
   const isActive = distribution?.status === 'active';
+  const items = distribution?.items || [];
 
   useEffect(() => {
     if (!params.id) {
@@ -111,7 +112,7 @@ export default function DistributionPage() {
         {(isAdmin || isActive) && (
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Items ({distribution.items.length})</h2>
+              <h2 className="text-2xl font-bold">Items ({items.length})</h2>
               {isAdmin && (
                 <button
                   onClick={() => setShowItemForm(!showItemForm)}
@@ -137,9 +138,9 @@ export default function DistributionPage() {
               </div>
             )}
 
-            {distribution.items.length > 0 ? (
+            {items.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {distribution.items.map((item: Item) => (
+                {items.map((item: Item) => (
                   <div key={item.id} className="bg-white shadow rounded-lg p-6">
                     {item.imageUrl && (
                       <div className="mb-4 aspect-w-16 aspect-h-9">
