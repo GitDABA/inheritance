@@ -1,6 +1,22 @@
 import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 
+interface Distribution {
+  id: string;
+  status: string;
+}
+
+interface AnalyticsData {
+  totalItems: number;
+  participationRates: Record<string, number>;
+  pointsUsed: Record<string, number>;
+}
+
+interface ItemAllocation {
+  user_id: string;
+  points_allocated: number;
+}
+
 const supabase = createClient(
   'https://xwnayrioxkcjwbefhkcu.supabase.co',
   process.env.SUPABASE_ANON_KEY!
@@ -47,14 +63,18 @@ export const handler: Handler = async (event, context) => {
 
     if (itemsError) throw itemsError;
 
-    // Calculate participation rates and points used for each distribution
-    const analytics = {
-      totalItems,
+    // Initialize analytics object with proper typing
+    const analytics: AnalyticsData = {
+      totalItems: totalItems || 0,
       participationRates: {},
       pointsUsed: {}
     };
 
-    for (const distribution of distributions) {
+    if (!distributions) {
+      throw new Error('No distributions found');
+    }
+
+    for (const distribution of distributions as Distribution[]) {
       // Get total users
       const { count: totalUsers } = await supabase
         .from('users')
@@ -67,12 +87,12 @@ export const handler: Handler = async (event, context) => {
         .eq('distribution_id', distribution.id);
 
       // Count unique users
-      const uniqueUsers = new Set(participatingUsersData?.map(item => item.user_id));
+      const uniqueUsers = new Set((participatingUsersData || []).map(item => item.user_id));
       const participatingUsers = uniqueUsers.size;
 
       // Calculate participation rate
       analytics.participationRates[distribution.id] = 
-        Math.round((participatingUsers / totalUsers) * 100);
+        totalUsers ? Math.round((participatingUsers / totalUsers) * 100) : 0;
 
       // Get total points used
       const { data: pointsData } = await supabase
@@ -81,7 +101,7 @@ export const handler: Handler = async (event, context) => {
         .eq('distribution_id', distribution.id);
 
       analytics.pointsUsed[distribution.id] = 
-        pointsData?.reduce((sum, item) => sum + item.points_allocated, 0) || 0;
+        (pointsData as ItemAllocation[] || []).reduce((sum, item) => sum + (item.points_allocated || 0), 0);
     }
 
     return {
