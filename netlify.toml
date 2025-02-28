@@ -3,6 +3,10 @@
   publish = ".next"
   functions = "netlify/functions"
 
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_VERSION = "9"
+
 [dev]
   command = "npm run dev"
   port = 5279
@@ -17,3 +21,6 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["@supabase/supabase-js"]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
