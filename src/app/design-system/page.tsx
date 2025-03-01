@@ -124,7 +124,8 @@ export default function DesignSystem() {
         </CardHeader>
         <CardContent>
           <ImageUpload
-            onChange={setUploadedImage}
+            selectedFile={uploadedImage}
+            onFileSelect={setUploadedImage}
             maxSizeMB={5}
           />
         </CardContent>
