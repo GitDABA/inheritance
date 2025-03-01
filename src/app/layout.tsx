@@ -1,27 +1,39 @@
 'use client';
 
-import { Inter } from 'next/font/google';
-import { useEffect } from 'react';
-import netlifyIdentity from 'netlify-identity-widget';
-import { AuthProvider } from '@/lib/auth/AuthContext';
 import './globals.css';
+import { Inter } from 'next/font/google';
+import { AuthProvider } from '@/lib/auth/AuthContext';
 
 const inter = Inter({ subsets: ['latin'] });
+
+// This metadata will be handled client-side since we're using 'use client'
+// For server components, this would be exported as a metadata object
+const siteMetadata = {
+  title: 'Fair Item Distribution App',
+  description: 'Equitably allocate desired items among multiple users with our fairness-first approach',
+  keywords: 'fair distribution, item sharing, inheritance, family items, priority system',
+}
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  useEffect(() => {
-    netlifyIdentity.init();
-  }, []);
-
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="h-full bg-gray-50">
+      <head>
+        <title>{siteMetadata.title}</title>
+        <meta name="description" content={siteMetadata.description} />
+        <meta name="keywords" content={siteMetadata.keywords} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className={`${inter.className} min-h-full`}>
         <AuthProvider>
-          {children}
+          <div className="min-h-screen">
+            <main className="container mx-auto px-4 py-8 animate-fade-in">
+              {children}
+            </main>
+          </div>
         </AuthProvider>
       </body>
     </html>

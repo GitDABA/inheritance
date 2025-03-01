@@ -5,7 +5,17 @@ import { useParams, useRouter } from 'next/navigation';
 import { Distribution, Item } from '@/types';
 import { getDistribution } from '@/lib/api/distributions';
 import { useAuth } from '@/lib/auth/AuthContext';
-import ItemForm from '@/components/items/ItemForm';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { ImageUpload } from '@/components/ui/ImageUpload';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/Card';
 
 export default function DistributionPage() {
   const params = useParams();
@@ -15,158 +25,182 @@ export default function DistributionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [showItemForm, setShowItemForm] = useState(false);
+  const [newItem, setNewItem] = useState({
+    title: '',
+    description: '',
+    imageUrl: '',
+    price: '',
+  });
 
   const isAdmin = user?.role === 'admin';
   const isActive = distribution?.status === 'active';
   const items = distribution?.items || [];
 
   useEffect(() => {
-    if (!params.id) {
-      router.push('/distributions');
-      return;
-    }
-    loadDistribution();
+    const fetchDistribution = async () => {
+      try {
+        const data = await getDistribution(params.id as string);
+        setDistribution(data);
+      } catch (err) {
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDistribution();
   }, [params.id]);
 
-  const loadDistribution = async () => {
-    try {
-      const data = await getDistribution(params.id as string);
-      setDistribution({
-        ...data,
-        items: data.items || [], // Ensure items is always an array
-      });
-      setError(null);
-    } catch (err) {
-      console.error('Error loading distribution:', err);
-      setError(err instanceof Error ? err : new Error('Failed to load distribution'));
-    } finally {
-      setLoading(false);
-    }
+  const handleCreateItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Implementation for creating item
+    console.log('Creating item:', newItem);
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     );
   }
 
-  if (error || !distribution) {
+  if (error) {
     return (
-      <div className="min-h-screen p-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-3xl font-bold text-red-500 mb-4">Error</h1>
-          <p className="text-gray-600">{error?.message || 'Distribution not found'}</p>
-          <button
-            onClick={() => router.push('/distributions')}
-            className="mt-4 px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700"
-          >
+      <Card className="mx-auto max-w-2xl mt-8">
+        <CardHeader>
+          <CardTitle className="text-error-600">Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-error-600">{error.message}</p>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={() => router.push('/distributions')}>
             Back to Distributions
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardFooter>
+      </Card>
     );
   }
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <button
-            onClick={() => router.push('/distributions')}
-            className="text-sm font-medium text-primary-600 hover:text-primary-700"
-          >
-            ← Back to Distributions
-          </button>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>{distribution?.name}</CardTitle>
+          <CardDescription>
+            Status: <span className="capitalize">{distribution?.status}</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">{distribution?.description}</p>
+        </CardContent>
+      </Card>
 
-        <div className="bg-white shadow rounded-lg p-6 mb-8">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{distribution.name}</h1>
-              <div className="flex space-x-4 text-sm text-gray-500">
-                <p>Start: {new Date(distribution.startDate).toLocaleDateString()}</p>
-                <p>End: {new Date(distribution.endDate).toLocaleDateString()}</p>
-                <p className="capitalize">Status: {distribution.status}</p>
-                {distribution.totalItems !== undefined && (
-                  <p>Total Items: {distribution.totalItems}</p>
-                )}
-                {distribution.participationRate !== undefined && (
-                  <p>Participation: {distribution.participationRate}%</p>
-                )}
-              </div>
-            </div>
-
-            {isAdmin && (
-              <button
-                onClick={() => router.push(`/distributions/${distribution.id}/edit`)}
-                className="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700"
-              >
-                Edit Distribution
-              </button>
-            )}
-          </div>
-        </div>
-
-        {(isAdmin || isActive) && (
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Items ({items.length})</h2>
-              {isAdmin && (
-                <button
-                  onClick={() => setShowItemForm(!showItemForm)}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                >
-                  {showItemForm ? 'Hide Form' : 'Add Item'}
-                </button>
-              )}
-            </div>
-
-            {showItemForm && (
-              <div className="mb-8">
-                <ItemForm
-                  distributionId={distribution.id}
-                  onSuccess={() => {
-                    setShowItemForm(false);
-                    loadDistribution();
-                  }}
-                  onError={(error) => {
-                    alert(error.message);
-                  }}
+      {isAdmin && isActive && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Add New Item</CardTitle>
+            <CardDescription>Create a new item for this distribution</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleCreateItem}>
+            <CardContent className="space-y-4">
+              <Input
+                label="Title"
+                value={newItem.title}
+                onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
+                placeholder="Enter item title"
+                required
+              />
+              
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Description
+                </label>
+                <textarea
+                  className="w-full rounded-md border border-input px-3 py-2 text-sm"
+                  rows={4}
+                  value={newItem.description}
+                  onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                  placeholder="Enter item description"
+                  required
                 />
               </div>
-            )}
 
-            {items.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {items.map((item: Item) => (
-                  <div key={item.id} className="bg-white shadow rounded-lg p-6">
+              <ImageUpload
+                onChange={(file) => setNewItem({ ...newItem, imageUrl: file ? URL.createObjectURL(file) : '' })}
+                value={newItem.imageUrl}
+                maxSizeMB={5}
+              />
+
+              <Input
+                label="Price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={newItem.price}
+                onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+                placeholder="Enter item price"
+                required
+              />
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" size="lg">
+                Create Item
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Distribution Items</CardTitle>
+          <CardDescription>Items available in this distribution</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {items.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No items added yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {items.map((item: Item) => (
+                <Card key={item.id} variant="bordered">
+                  <CardHeader>
+                    <CardTitle>{item.title}</CardTitle>
+                    <CardDescription>Price: ${item.price}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
                     {item.imageUrl && (
-                      <div className="mb-4 aspect-w-16 aspect-h-9">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className="object-cover rounded-md"
-                        />
-                      </div>
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-48 object-cover rounded-md mb-4"
+                      />
                     )}
-                    <h3 className="text-lg font-medium mb-2">{item.title}</h3>
-                    {item.description && (
-                      <p className="text-gray-500 text-sm mb-2">{item.description}</p>
-                    )}
-                    {item.price && (
-                      <p className="text-gray-700 font-medium">${item.price.toFixed(2)}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 p-8">No items have been added yet.</p>
-            )}
-          </div>
-        )}
-      </div>
+                    <p className="text-sm text-gray-600">{item.description}</p>
+                  </CardContent>
+                  {isAdmin && (
+                    <CardFooter>
+                      <Button variant="outline" size="sm">
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        Delete
+                      </Button>
+                    </CardFooter>
+                  )}
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

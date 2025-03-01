@@ -1,0 +1,14 @@
+{
+  "name": "inheritance-supabase-setup",
+  "version": "1.0.0",
+  "description": "Automated setup for Inheritance Distribution App Supabase backend",
+  "main": "storage.js",
+  "scripts": {
+    "setup": "bash setup.sh",
+    "storage": "node storage.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  }
+}

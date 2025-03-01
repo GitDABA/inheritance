@@ -1,9 +1,9 @@
 import { Distribution } from '@/types';
+import { supabase } from '@/lib/supabase/client';
 
 async function getAuthHeader() {
-  const netlifyIdentity = require('netlify-identity-widget');
-  const user = netlifyIdentity.currentUser();
-  return user ? `Bearer ${user.token.access_token}` : '';
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ? `Bearer ${session.access_token}` : '';
 }
 
 export async function createDistribution(data: Partial<Distribution>): Promise<Distribution> {
@@ -40,14 +40,15 @@ export async function getDistributions(): Promise<Distribution[]> {
 }
 
 export async function getDistribution(id: string): Promise<Distribution> {
-  const response = await fetch(`/.netlify/functions/distribution-details?id=${id}`, {
+  const response = await fetch(`/.netlify/functions/distribution-management/${id}`, {
     headers: {
-      'Content-Type': 'application/json',
+      'Authorization': await getAuthHeader(),
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch distribution');
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to fetch distribution');
   }
 
   const data = await response.json();

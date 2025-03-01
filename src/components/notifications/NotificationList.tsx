@@ -2,151 +2,118 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { supabase } from '@/lib/supabase/client';
 
 interface Notification {
   id: string;
-  type: string;
-  content: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  createdAt: string;
   read: boolean;
-  created_at: string;
-  distribution?: { name: string };
-  item?: { title: string };
 }
 
 export default function NotificationList() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    loadNotifications();
-  }, []);
+    fetchNotifications();
+  }, [user]);
 
-  const loadNotifications = async () => {
+  const fetchNotifications = async () => {
+    if (!user) return;
+
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch('/.netlify/functions/notifications', {
         headers: {
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to load notifications');
+        throw new Error('Failed to fetch notifications');
       }
 
       const data = await response.json();
       setNotifications(data);
-      setError(null);
     } catch (error) {
-      console.error('Error loading notifications:', error);
-      setError(error instanceof Error ? error : new Error('Failed to load notifications'));
+      console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const markAsRead = async (notificationIds: string[]) => {
+  const markAsRead = async (id: string) => {
+    if (!user) return;
+
     try {
-      const response = await fetch('/.netlify/functions/notifications', {
-        method: 'POST',
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(`/.netlify/functions/notifications/${id}`, {
+        method: 'PATCH',
         headers: {
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
         },
-        body: JSON.stringify({ notificationIds }),
+        body: JSON.stringify({ read: true }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to mark notifications as read');
+        throw new Error('Failed to mark notification as read');
       }
 
       setNotifications(prev =>
-        prev.map(notification =>
-          notificationIds.includes(notification.id)
-            ? { ...notification, read: true }
-            : notification
+        prev.map(notif =>
+          notif.id === id ? { ...notif, read: true } : notif
         )
       );
     } catch (error) {
-      console.error('Error marking notifications as read:', error);
+      console.error('Error marking notification as read:', error);
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-32">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
-      </div>
-    );
+    return <div>Loading notifications...</div>;
   }
-
-  if (error) {
-    return (
-      <div className="text-center text-red-500 p-4">
-        Error: {error.message}
-      </div>
-    );
-  }
-
-  if (notifications.length === 0) {
-    return (
-      <div className="text-center text-gray-500 p-4">
-        No notifications
-      </div>
-    );
-  }
-
-  const unreadNotifications = notifications.filter(n => !n.read);
 
   return (
     <div className="space-y-4">
-      {unreadNotifications.length > 0 && (
-        <div className="flex justify-between items-center px-4">
-          <span className="text-sm font-medium text-gray-700">
-            {unreadNotifications.length} unread notifications
-          </span>
-          <button
-            onClick={() => markAsRead(unreadNotifications.map(n => n.id))}
-            className="text-sm text-primary-600 hover:text-primary-700"
-          >
-            Mark all as read
-          </button>
-        </div>
-      )}
-
-      <div className="divide-y divide-gray-200">
-        {notifications.map((notification) => (
+      {notifications.length === 0 ? (
+        <p className="text-gray-500">No notifications</p>
+      ) : (
+        notifications.map(notification => (
           <div
             key={notification.id}
-            className={`p-4 ${notification.read ? 'bg-white' : 'bg-blue-50'}`}
+            className={`p-4 rounded-lg shadow ${
+              notification.read ? 'bg-gray-50' : 'bg-white'
+            }`}
           >
             <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <p className="text-sm text-gray-900">{notification.content}</p>
-                {(notification.distribution || notification.item) && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    {notification.distribution?.name} - {notification.item?.title}
-                  </p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  {new Date(notification.created_at).toLocaleDateString()}
+              <div>
+                <p className={`text-sm ${notification.read ? 'text-gray-500' : 'text-gray-900'}`}>
+                  {notification.message}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {new Date(notification.createdAt).toLocaleDateString()}
                 </p>
               </div>
               {!notification.read && (
                 <button
-                  onClick={() => markAsRead([notification.id])}
-                  className="ml-4 text-sm text-primary-600 hover:text-primary-700"
+                  onClick={() => markAsRead(notification.id)}
+                  className="text-xs text-primary-600 hover:text-primary-700"
                 >
                   Mark as read
                 </button>
               )}
             </div>
           </div>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 }

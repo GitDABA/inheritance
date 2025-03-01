@@ -21,7 +21,7 @@ export default function DistributionForm({ distribution, onSuccess, onError }: D
       name: formData.get('name') as string,
       startDate: new Date(formData.get('startDate') as string).toISOString(),
       endDate: new Date(formData.get('endDate') as string).toISOString(),
-      status: (formData.get('status') as Distribution['status']) || 'pending'
+      status: (formData.get('status') as Distribution['status']) || 'draft'
     };
 
     try {
@@ -92,10 +92,10 @@ export default function DistributionForm({ distribution, onSuccess, onError }: D
         <select
           name="status"
           id="status"
-          defaultValue={distribution?.status || 'pending'}
+          defaultValue={distribution?.status || 'draft'}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
         >
-          <option value="pending">Pending</option>
+          <option value="draft">Draft</option>
           <option value="active">Active</option>
           <option value="completed">Completed</option>
         </select>

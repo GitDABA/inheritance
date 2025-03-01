@@ -28,15 +28,40 @@ CREATE TABLE distributions (
 -- Items table
 CREATE TABLE items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    title TEXT NOT NULL,
-    description TEXT,
-    image_url TEXT,
-    price DECIMAL(10,2),
-    distribution_id UUID REFERENCES distributions(id),
-    created_by UUID REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    image_url TEXT NOT NULL,
+    points INTEGER NOT NULL,
+    owner_id UUID REFERENCES auth.users(id),
+    status TEXT NOT NULL DEFAULT 'available'
+        CHECK (status IN ('available', 'claimed', 'archived')),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
+
+-- Enable Row Level Security
+ALTER TABLE items ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for items table
+CREATE POLICY "Users can view all items" 
+    ON items FOR SELECT 
+    TO authenticated 
+    USING (true);
+
+CREATE POLICY "Users can create their own items" 
+    ON items FOR INSERT 
+    TO authenticated 
+    WITH CHECK (owner_id = auth.uid());
+
+CREATE POLICY "Users can update their own items" 
+    ON items FOR UPDATE 
+    TO authenticated 
+    USING (owner_id = auth.uid());
+
+CREATE POLICY "Users can delete their own items" 
+    ON items FOR DELETE 
+    TO authenticated 
+    USING (owner_id = auth.uid());
 
 -- Item allocations table
 CREATE TABLE item_allocations (
@@ -104,7 +129,6 @@ CREATE INDEX idx_comments_item_id ON comments(item_id);
 -- Create RLS policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE distributions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE item_allocations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 
@@ -131,21 +155,6 @@ CREATE POLICY "Admins can create distributions"
     WITH CHECK (
         EXISTS (
             SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'
-        )
-    );
-
--- Items policies
-CREATE POLICY "Users can view all items"
-    ON items FOR SELECT
-    USING (true);
-
-CREATE POLICY "Users can create items in active distributions"
-    ON items FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM distributions
-            WHERE id = distribution_id
-            AND status = 'active'
         )
     );
 

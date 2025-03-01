@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { Item } from '@/types';
+import { supabase } from '@/lib/supabase/client';
+
+interface Item {
+  id: string;
+  title: string;
+  description: string;
+  pointValue: number;
+}
 
 interface PointAllocationFormProps {
   item: Item;
@@ -18,39 +25,48 @@ export default function PointAllocationForm({
   onError
 }: PointAllocationFormProps) {
   const { user } = useAuth();
-  const [points, setPoints] = useState<number>(0);
+  const [points, setPoints] = useState<number>(item.pointValue);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const availablePoints = user ? user.points - user.pointsSpent : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
     setLoading(true);
+    setError(null);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
       const response = await fetch('/.netlify/functions/point-allocation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           itemId: item.id,
-          points,
+          points: points,
           distributionId,
         }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to allocate points');
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to allocate points');
       }
 
       setPoints(0);
       onSuccess?.();
-    } catch (error) {
-      console.error('Error allocating points:', error);
-      onError?.(error instanceof Error ? error : new Error('Failed to allocate points'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to allocate points');
+      onError?.(err instanceof Error ? err : new Error('Failed to allocate points'));
     } finally {
       setLoading(false);
     }
@@ -79,10 +95,18 @@ export default function PointAllocationForm({
         </p>
       </div>
 
+      {error && (
+        <div className="text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
       <button
         type="submit"
         disabled={loading || points <= 0 || points > availablePoints}
-        className="w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+          loading ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
       >
         {loading ? 'Allocating...' : 'Allocate Points'}
       </button>
