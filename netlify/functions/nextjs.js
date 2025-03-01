@@ -2,4 +2,6 @@
 // The @netlify/plugin-nextjs package will use this handler
 // DO NOT MODIFY THIS FILE
 
-export { handler } from '@netlify/plugin-nextjs'
+// CommonJS format
+const { handler } = require('@netlify/plugin-nextjs');
+module.exports = { handler };
