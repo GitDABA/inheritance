@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import '@/app/ui-enhancements.css';
+import '@/styles/ui-enhancements.css';
 import {
   enhancedCard, 
   enhancedCardHeader, 

@@ -14,6 +14,7 @@ The quickest way to apply the enhanced styling is to wrap your page content with
 'use client';
 
 import EnhancedLayout from '@/components/EnhancedLayout';
+import '@/styles/enhanced-ui.css'; // Import the enhanced UI CSS file
 
 export default function YourPage() {
   return (

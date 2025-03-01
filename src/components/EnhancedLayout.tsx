@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import '@/app/ui-enhancements.css';
+import '@/styles/ui-enhancements.css';
 import {
   enhancedPageContainer,
   enhancedCard,
@@ -57,16 +57,10 @@ export default function EnhancedLayout({
                 </p>
               )}
             </div>
-            <div>
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className="h-10 w-auto"
-                onError={(e) => {
-                  // Fallback if image doesn't exist
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
+            <div className="flex items-center">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-bold px-3 py-2 rounded">
+                ID
+              </div>
             </div>
           </div>
           
@@ -104,7 +98,7 @@ export default function EnhancedLayout({
       <footer className="mt-12 pt-6 border-t border-gray-200">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-500">
-            © {new Date().getFullYear()} Inheritance Distribution App
+            {new Date().getFullYear()} Inheritance Distribution App
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <Link href="/privacy" className="text-sm text-gray-500 hover:text-blue-600">

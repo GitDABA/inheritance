@@ -128,7 +128,7 @@ The Inheritance Distribution application includes a set of UI enhancements that 
 
 1. **Import the CSS**:
    ```tsx
-   import '@/app/ui-enhancements.css';
+   import '@/styles/ui-enhancements.css';
    ```
 
 2. **Use helper functions**:
