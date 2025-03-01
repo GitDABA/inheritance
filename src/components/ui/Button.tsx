@@ -17,7 +17,7 @@ const buttonVariants = cva(
       size: {
         default: 'h-10 px-4 py-2',
         sm: 'h-8 rounded-md px-3 text-xs',
-        lg: 'h-12 rounded-md px-8',
+        lg: 'h-12 rounded-md px-8 text-lg',
         icon: 'h-10 w-10',
       },
     },
@@ -48,4 +48,5 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
-export { Button, buttonVariants };
+export default Button;
+export { buttonVariants };

@@ -120,6 +120,73 @@ Use the following docs to identify the available capabilities and where to learn
 - [Netlify Help Center](https://docs.netlify.com/ask-netlify/): Get quick help with Netlify; login required for assistance; contact support for login issues, transfers, or fraud.
 - [Netlify AI Publishing](https://docs.netlify.com/ai-assisted-publishing/): AI-powered content conversion for Netlify sites; currently in private beta.
 
+## Project-Specific Troubleshooting
+
+### 1. `plugins.inputs` Configuration Error
+
+**Error:**
+```
+Plugin "@netlify/plugin-nextjs" invalid input "debug"
+Plugin "@netlify/plugin-nextjs" does not accept any inputs but you specified: "debug", "minify", "bundle", "sourcemap"
+```
+
+**Solution:**  
+The `@netlify/plugin-nextjs` plugin doesn't accept any inputs. We removed the `[plugins.inputs]` section from `netlify.toml`.
+
+### 2. Module Not Found Errors
+
+**Error:**
+Build failures with module not found errors in:
+- `./src/app/admin/page.tsx` - Missing `@/lib/auth/AuthContext`
+- `./src/app/design-system/page.tsx` - Missing multiple UI components
+
+**Solution:**
+1. Ensure all components are properly exported and paths are correct
+2. Verify all required files exist in the repository:
+   - `/src/lib/auth/AuthContext.tsx`
+   - `/src/components/ui/Button.tsx`
+   - `/src/components/ui/Input.tsx`
+   - `/src/components/ui/ImageUpload.tsx`
+   - `/src/components/ui/Card.tsx`
+
+### 3. Function Size Limitation
+
+**Error:**
+Function bundle too large, exceeding Netlify's 250MB limit.
+
+**Solution:**
+1. Added function-specific `package.json` in `/netlify/functions/` with dependencies moved to `peerDependencies`
+2. Used `external_node_modules` in `netlify.toml` to exclude large packages
+3. Created smaller, optimized handler (`nextjs-simple.js`)
+4. Added edge function for static assets
+
+### 4. ESM vs CommonJS Issues
+
+**Error:**
+Module import errors with ESM/CommonJS compatibility.
+
+**Solution:**
+1. Removed `"type": "module"` from main `package.json`
+2. Converted ESM imports to CommonJS in Netlify functions
+3. Used dynamic imports for Next.js related modules
+
+## Best Practices for Netlify Deployments
+
+1. **Function Size Management:**
+   - Keep functions small and focused
+   - Externalize large dependencies
+   - Use edge functions for static content
+
+2. **Environment Variables:**
+   - Set required variables in Netlify UI
+   - Use `.env.local` for local development
+   - Remember production URL: https://inheritance-dist.netlify.app/
+
+3. **Build Configuration:**
+   - Optimize `next.config.js` for production builds
+   - Use proper cache settings
+   - Configure correct publish directory
+
 ## UI Enhancements
 
 The Inheritance Distribution application includes a set of UI enhancements that provide a polished, cohesive user experience without modifying the core structure or introducing build issues.
