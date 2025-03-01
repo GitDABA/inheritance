@@ -8,6 +8,8 @@
   NODE_VERSION = "18"
   # Reduce bundle size
   NODE_ENV = "production"
+  # Use custom Tailwind config for Netlify
+  TAILWIND_CONFIG_PATH = "./tailwind.netlify.config.js"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

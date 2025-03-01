@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
-const aliasConfig = require('./next.alias.config');
+const { pathsToAliasResolver } = require('./next.alias.config.js');
+
+// Determine if we're running on Netlify
+const isNetlify = process.env.NETLIFY === 'true';
 
 const nextConfig = {
   reactStrictMode: true,
@@ -25,7 +28,11 @@ const nextConfig = {
   // Path aliases for module resolution
   webpack: (config, { dev, isServer }) => {
     // Ensure path aliases work correctly
-    config.resolve.alias['@'] = path.join(__dirname, 'src');
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      ...pathsToAliasResolver,
+      '@': path.join(__dirname, 'src'),
+    };
     
     // Production optimizations only
     if (!dev) {
@@ -41,6 +48,10 @@ const nextConfig = {
     }
     
     return config;
+  },
+  // Add environment variables for Tailwind config path
+  env: {
+    TAILWIND_CONFIG_PATH: isNetlify ? './tailwind.netlify.config.js' : './tailwind.config.js',
   },
 };
 

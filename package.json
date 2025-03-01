@@ -16,6 +16,7 @@
     "@netlify/next": "^1.1.0",
     "@netlify/plugin-nextjs": "^5.9.4",
     "@supabase/supabase-js": "^2.39.0",
+    "@tailwindcss/forms": "0.5.10",
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.16",
     "class-variance-authority": "^0.7.0",
@@ -30,7 +31,6 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
-    "@tailwindcss/forms": "0.5.10",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
     "@types/node": "^20.10.4",
