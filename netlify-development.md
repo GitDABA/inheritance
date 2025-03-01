@@ -119,3 +119,87 @@ Use the following docs to identify the available capabilities and where to learn
 - [Netlify Docs: Build, Deploy, Scale](https://docs.netlify.com/): Netlify documentation: tutorials, guides, platform primitives, framework support, and more.
 - [Netlify Help Center](https://docs.netlify.com/ask-netlify/): Get quick help with Netlify; login required for assistance; contact support for login issues, transfers, or fraud.
 - [Netlify AI Publishing](https://docs.netlify.com/ai-assisted-publishing/): AI-powered content conversion for Netlify sites; currently in private beta.
+
+## UI Enhancements
+
+The Inheritance Distribution application includes a set of UI enhancements that provide a polished, cohesive user experience without modifying the core structure or introducing build issues.
+
+### How to Use UI Enhancements
+
+1. **Import the CSS**:
+   ```tsx
+   import '@/app/ui-enhancements.css';
+   ```
+
+2. **Use helper functions**:
+   ```tsx
+   import { enhancedCard, enhancedButton } from '@/lib/ui-enhancer';
+   
+   // In your component:
+   <div className={enhancedCard()}>
+     <button className={enhancedButton('primary')}>
+       Click Me
+     </button>
+   </div>
+   ```
+
+3. **Apply classes directly**:
+   ```tsx
+   <div className="enhanced-card">
+     <div className="enhanced-card-header">
+       <h2>Card Title</h2>
+     </div>
+     <div className="enhanced-card-content">
+       Content goes here
+     </div>
+     <div className="enhanced-card-footer">
+       <button className="btn-enhanced btn-primary-enhanced">
+         Submit
+       </button>
+     </div>
+   </div>
+   ```
+
+### Available Enhancement Categories
+
+1. **Cards**: `enhanced-card`, `enhanced-card-header`, `enhanced-card-content`, `enhanced-card-footer`
+2. **Buttons**: `btn-enhanced`, `btn-primary-enhanced`, `btn-secondary-enhanced`
+3. **Form Controls**: `input-enhanced`, `input-label-enhanced`
+4. **Image Upload**: `image-upload-enhanced`
+5. **Loading States**: `spinner-enhanced`
+6. **Item Cards**: `item-card`, `item-card-img`, `item-card-body`, `item-card-points`
+7. **Layout**: `page-container`, `section-header`, `section-title`
+8. **Status Badges**: `status-badge`, `status-available`, `status-claimed`, `status-archived`
+9. **Toast Notifications**: `toast-container`, `toast`, `toast-success`, `toast-error`
+
+### Implementation Notes
+
+- These enhancements build on top of the existing Tailwind CSS setup
+- They don't modify the core structure or functionality of the app
+- All enhancements are compatible with Netlify builds
+- Helper functions in `src/lib/ui-enhancer.ts` provide type-safe ways to use the enhanced styles
+- Animations and transitions are optimized for performance
+
+### Example: Enhanced Item Card
+
+```tsx
+<div className="item-card">
+  <img 
+    src={item.image_url} 
+    alt={item.title} 
+    className="item-card-img" 
+  />
+  <div className="item-card-body">
+    <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+    <p className="text-gray-600 mb-4">{item.description}</p>
+    <div className="flex justify-between items-center">
+      <span className="item-card-points">{item.points} Points</span>
+      <span className={`status-badge ${statusClass}`}>
+        {item.status}
+      </span>
+    </div>
+  </div>
+</div>
+```
+
+These UI enhancements ensure the application has a professional, consistent appearance while maintaining compatibility with Netlify builds and deployments.

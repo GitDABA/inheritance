@@ -1,6 +1,7 @@
 'use client';
 
 import './globals.css';
+import './ui-enhancements.css'; // Import enhanced UI styles
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 
