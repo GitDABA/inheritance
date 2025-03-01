@@ -25,6 +25,7 @@ export default function DistributionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [showItemForm, setShowItemForm] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [newItem, setNewItem] = useState({
     title: '',
     description: '',
@@ -128,8 +129,11 @@ export default function DistributionPage() {
               </div>
 
               <ImageUpload
-                onChange={(file) => setNewItem({ ...newItem, imageUrl: file ? URL.createObjectURL(file) : '' })}
-                value={newItem.imageUrl}
+                selectedFile={selectedImage}
+                onFileSelect={(file) => {
+                  setSelectedImage(file);
+                  setNewItem({ ...newItem, imageUrl: file ? URL.createObjectURL(file) : '' });
+                }}
                 maxSizeMB={5}
               />
 
