@@ -11,12 +11,7 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  [plugins.inputs]
-    # Optimize build for smaller function size
-    debug = false
-    minify = true
-    bundle = true
-    sourcemap = false
+  # The plugin doesn't accept any inputs
 
 [functions]
   # Use ESBuild which creates smaller bundles
