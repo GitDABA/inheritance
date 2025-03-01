@@ -13,6 +13,14 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+[functions]
+  node_bundler = "esbuild"
+
+# Exclude problematic modules from CommonJS transformation to fix top-level await issues
+[[plugins.inputs]]
+  # Files with top-level await should remain as ESM
+  external_node_modules = ["@supabase/supabase-js", "jose", "undici", "node-fetch", "@aws-sdk/s3-request-presigner", "@aws-sdk/util-create-request", "@aws-sdk/util-format-url"]
+
 # Handle Next.js routing
 [[redirects]]
   from = "/_next/static/*"
