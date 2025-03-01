@@ -202,9 +202,31 @@ EXECUTE FUNCTION update_user_points();
 ```
 7. Click "Save"
 
-## Step 9: Run Your App
+## Step 9: Setting Up Environment Variables
+
+After setting up your Supabase project, you need to configure the environment variables for both local development and production:
+
+### For Local Development
+
+1. Create a `.env.local` file in the root of your project
+2. Add the following variables:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+3. Replace the values with your Supabase project URL and anon key from the Supabase dashboard
+
+### For Netlify Deployment
+
+1. Go to your Netlify dashboard and select your site
+2. Navigate to **Site Settings** > **Environment variables**
+3. Add both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` with your Supabase project values
+4. Make sure to add them to both **Build variables** and **Runtime variables**
+
+These environment variables are required for authentication and database access to work correctly.
+
+## Step 10: Run Your App
 
 ```bash
 cd /Users/davidbakke/CascadeProjects/inherance
 npm run dev:all
-```
