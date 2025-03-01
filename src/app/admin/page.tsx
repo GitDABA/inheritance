@@ -50,8 +50,8 @@ export default function AdminPage() {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">System Settings</h2>
-          <p className="text-gray-600">Configure global application settings</p>
+          <h2 className="text-xl font-semibold mb-4">Content Management</h2>
+          <p className="text-gray-600">Manage item descriptions and images</p>
         </div>
       </div>
     </div>

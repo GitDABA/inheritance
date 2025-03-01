@@ -37,104 +37,123 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          name: session.user.user_metadata?.full_name || session.user.email!.split('@')[0],
-          isAdmin: session.user.user_metadata?.is_admin || false,
-          points: session.user.user_metadata?.points || 1000,
-          pointsSpent: session.user.user_metadata?.points_spent || 0,
-          role: session.user.user_metadata?.role || 'user',
-        });
-      }
-      setAuthReady(true);
-      setLoading(false);
-    });
+    const fetchUser = async () => {
+      try {
+        // Check if user is signed in
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          name: session.user.user_metadata?.full_name || session.user.email!.split('@')[0],
-          isAdmin: session.user.user_metadata?.is_admin || false,
-          points: session.user.user_metadata?.points || 1000,
-          pointsSpent: session.user.user_metadata?.points_spent || 0,
-          role: session.user.user_metadata?.role || 'user',
-        });
-      } else {
+          if (error) {
+            console.error('Error fetching user profile:', error);
+            setUser(null);
+          } else if (data) {
+            setUser({
+              id: data.id,
+              email: session.user.email || '',
+              name: data.full_name || '',
+              role: data.role || 'user',
+              points: data.points || 0,
+              pointsSpent: data.points_spent || 0,
+              isAdmin: data.role === 'admin',
+            });
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Auth error:', error);
         setUser(null);
+      } finally {
+        setLoading(false);
+        setAuthReady(true);
       }
-      setLoading(false);
-    });
+    };
+
+    fetchUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (!error && data) {
+            setUser({
+              id: data.id,
+              email: session.user.email || '',
+              name: data.full_name || '',
+              role: data.role || 'user',
+              points: data.points || 0,
+              pointsSpent: data.points_spent || 0,
+              isAdmin: data.role === 'admin',
+            });
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
 
     return () => {
-      subscription.unsubscribe();
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return { success: true };
     } catch (error) {
-      console.error('Error logging in:', error);
-      throw error;
+      console.error('Login error:', error);
+      return { success: false };
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
-      return { success: true, message: 'Registration successful! Please check your email to confirm your account.' };
-    } catch (error) {
-      console.error('Error signing up:', error);
-      throw error;
+      return { success: true, message: 'Check your email for confirmation link' };
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      return { success: false, message: error.message || 'Signup failed' };
     }
   };
 
   const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error logging out:', error);
-      throw error;
-    }
-  };
-
-  const value = {
-    user,
-    loading,
-    login,
-    signUp,
-    logout,
-    authReady,
+    await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        signUp,
+        logout,
+        authReady,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+// Export the useAuth hook
+export const useAuth = () => useContext(AuthContext);
+
+// Export the AuthContext as default export
+export default AuthContext;

@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { ImageUpload } from '@/components/ui/ImageUpload';
-import {
-  Card,
+// Import with support for both default and named exports
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import ImageUpload from '@/components/ui/ImageUpload';
+import Card, {
   CardHeader,
   CardTitle,
   CardDescription,

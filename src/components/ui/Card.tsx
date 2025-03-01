@@ -95,3 +95,4 @@ export {
   CardContent,
   CardFooter,
 };
+export default Card;
