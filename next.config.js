@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+const aliasConfig = require('./next.alias.config');
+
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
@@ -19,8 +22,11 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   
-  // Optimizations for smaller bundles
+  // Path aliases for module resolution
   webpack: (config, { dev, isServer }) => {
+    // Ensure path aliases work correctly
+    config.resolve.alias['@'] = path.join(__dirname, 'src');
+    
     // Production optimizations only
     if (!dev) {
       // Split chunks for better caching

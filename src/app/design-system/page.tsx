@@ -1,17 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-// Import with support for both default and named exports
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import ImageUpload from '@/components/ui/ImageUpload';
-import Card, {
+// Import all UI components from the barrel file
+import {
+  Button,
+  Input,
+  ImageUpload,
+  Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
   CardFooter,
-} from '@/components/ui/Card';
+} from '@/components/ui';
 
 export default function DesignSystem() {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
