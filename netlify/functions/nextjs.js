@@ -2,6 +2,7 @@
 // The @netlify/plugin-nextjs package will use this handler
 // DO NOT MODIFY THIS FILE
 
-// CommonJS format
-const { handler } = require('@netlify/plugin-nextjs');
-module.exports = { handler };
+// Use dynamic import for ES Module
+import('@netlify/plugin-nextjs').then(mod => {
+  module.exports = { handler: mod.handler };
+});
