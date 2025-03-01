@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@netlify/functions": "^2.4.1",
+    "@netlify/plugin-nextjs": "^5.9.4",
     "@supabase/supabase-js": "^2.39.0",
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.16",
@@ -28,7 +29,6 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.9.4",
     "@tailwindcss/forms": "0.5.10",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",

@@ -13,31 +13,31 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[functions]
-  node_bundler = "esbuild"
-
-# Rewrite rules to handle Next.js routes
+# Handle Next.js routing
 [[redirects]]
   from = "/_next/static/*"
   to = "/_next/static/:splat"
   status = 200
-  force = true
+
+[[redirects]]
+  from = "/_next/image*"
+  to = "/_next/image:splat"
+  status = 200
+
+[[redirects]]
+  from = "/_next/data/*"
+  to = "/_next/data/:splat"
+  status = 200
 
 [[redirects]]
   from = "/api/*"
-  to = "/api/:splat"
+  to = "/.netlify/functions/nextjs-api/:splat"
   status = 200
-  force = true
 
-[[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
-
+# For all page routes, serve the Next.js app
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/next"
+  to = "/.netlify/functions/nextjs"
   status = 200
 
 # Security headers
