@@ -12,16 +12,16 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@netlify/plugin-nextjs"]
+  external_node_modules = ["@netlify/plugin-nextjs", "@netlify/next"]
 
 # This ensures any API routes at /api/* are handled by the Next.js function
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/nextjs-alternative/:splat"
+  to = "/.netlify/functions/nextjs-simple/:splat"
   status = 200
 
 # For all other routes, serve the Next.js app
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/nextjs-alternative"
+  to = "/.netlify/functions/nextjs-simple"
   status = 200

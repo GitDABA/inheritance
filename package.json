@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@netlify/functions": "^2.4.1",
+    "@netlify/next": "^1.1.0",
     "@netlify/plugin-nextjs": "^5.9.4",
     "@supabase/supabase-js": "^2.39.0",
     "@tailwindcss/typography": "^0.5.10",
