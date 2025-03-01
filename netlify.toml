@@ -6,9 +6,6 @@
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
   NODE_VERSION = "18"
-  # Important: Add these two environment variables in your Netlify UI Settings
-  # NEXT_PUBLIC_SUPABASE_URL = "your_supabase_project_url"
-  # NEXT_PUBLIC_SUPABASE_ANON_KEY = "your_supabase_anon_key"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -16,46 +13,7 @@
 [functions]
   node_bundler = "esbuild"
 
-# Configure plugin settings for ESM compatibility
-[[plugins.inputs]]
-  # The plugin needs to be referenced explicitly
-  package = "@netlify/plugin-nextjs"
-  # Files with top-level await should remain as ESM
-  external_node_modules = ["@supabase/supabase-js", "jose", "undici", "node-fetch", "@aws-sdk/s3-request-presigner", "@aws-sdk/util-create-request", "@aws-sdk/util-format-url"]
-
-# Handle Next.js routing
-[[redirects]]
-  from = "/_next/static/*"
-  to = "/_next/static/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/_next/image*"
-  to = "/_next/image:splat"
-  status = 200
-
-[[redirects]]
-  from = "/_next/data/*"
-  to = "/_next/data/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/nextjs-api/:splat"
-  status = 200
-
-# For all page routes, serve the Next.js app
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/nextjs"
   status = 200
-
-# Security headers
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://api.netlify.com;"
