@@ -6,28 +6,74 @@
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
   NODE_VERSION = "18"
+  # Reduce bundle size
+  NODE_ENV = "production"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+  [plugins.inputs]
+    # Optimize build for smaller function size
+    debug = false
+    minify = true
+    bundle = true
+    sourcemap = false
 
 [functions]
+  # Use ESBuild which creates smaller bundles
   node_bundler = "esbuild"
-  external_node_modules = ["@netlify/plugin-nextjs", "@netlify/next"]
+  # Don't include these packages in the function bundle
+  included_files = ["!node_modules/@next/swc*/**/*", "!node_modules/next/dist/compiled/webpack/**/*"]
+  external_node_modules = [
+    "@netlify/plugin-nextjs", 
+    "@netlify/next",
+    "next", 
+    "react", 
+    "react-dom",
+    "@supabase/supabase-js",
+    "framer-motion",
+    "zustand",
+    "@tailwindcss/*",
+    "autoprefixer",
+    "postcss"
+  ]
 
-# Add a fallback for 500 errors
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
+
+[[edge_functions]]
+  path = "/*"
+  function = "static-assets"
+
 [[redirects]]
   from = "/*"
   to = "/fallback.html"
   status = 500
   force = true
 
-# This ensures any API routes at /api/* are handled by the Next.js function
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/_next/static/:splat"
+  status = 200
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/nextjs-simple/:splat"
   status = 200
 
-# For all other routes, serve the Next.js app
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/nextjs-simple"
