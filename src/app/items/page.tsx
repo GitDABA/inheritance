@@ -95,8 +95,11 @@ export default function ItemsPage() {
             </div>
 
             <ImageUpload
-              onChange={setSelectedImage}
-              value={newItem.imageUrl}
+              selectedFile={selectedImage}
+              onFileSelect={(file) => {
+                setSelectedImage(file);
+                setNewItem({ ...newItem, imageUrl: file ? URL.createObjectURL(file) : '' });
+              }}
               maxSizeMB={5}
             />
 
