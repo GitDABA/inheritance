@@ -1,0 +1,2 @@
+/* This file imports the ui-enhancements.css to maintain backward compatibility */
+@import './ui-enhancements.css';
